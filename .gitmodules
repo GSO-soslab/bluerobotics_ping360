@@ -1,3 +1,0 @@
-[submodule "ping360_sonar/dependency/ping-cpp"]
-	path = ping360_sonar/dependency/ping-cpp
-	url = https://github.com/GSO-soslab/ping-cpp
