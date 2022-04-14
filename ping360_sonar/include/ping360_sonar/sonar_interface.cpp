@@ -157,7 +157,8 @@ std::pair<bool, bool> Ping360Interface::read()
   auto &device{sonar.device_data_data};
   if(real_sonar)
   {
-    std::cout << device.transmit_duration << std::endl;
+    //// TEST:
+    // std::cout << "transmit_duration: " << device.transmit_duration << std::endl;
     sonar.set_transducer(device.mode,
                          device.gain_setting,
                          angle > 0 ? angle : angle+400,

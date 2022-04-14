@@ -33,29 +33,6 @@ Ping360ROS::Ping360ROS(const ros::NodeHandle &nh,
   server_.setCallback(boost::bind(&Ping360ROS::serverCallback, this, _1, _2));
 }
 
-void Ping360ROS::serverCallback(ping360_sonar::SonarConfig &config, uint32_t level)
-{
-  ROS_INFO("Reconfigure: gain:%d, frequency:%d, range:%d, angle_sector:%d, angle_step:%d, speed_of_sound:%d", 
-            config.gain,
-            config.frequency,
-            config.range,
-            config.angle_sector,
-            config.angle_step,
-            config.speed_of_sound);
-
-  // if(last_sci_manual != config.Manual) {
-
-  //   std_msgs::String task;
-  //   task.data = config.Manual;
-
-  //   pub_sciTask.publish(task);
-
-  //   // printf("send from onboard:%s\n", config.Manual.c_str());
-
-  //   last_sci_manual = config.Manual;
-  // }
-}
-
 void Ping360ROS::loadParamters() {
 
   //// Get serial interface parameters
@@ -97,6 +74,55 @@ void Ping360ROS::loadParamters() {
   //   params.scan_publish_ ? "yes" : "no", params.scan_threshold_, params.echo_publish_ ? "yes" : "no");
 }
 
+void Ping360ROS::serverCallback(ping360_sonar::SonarConfig &config, uint32_t level)
+{
+  // ROS_INFO("Reconfigure: gain:%d, frequency:%d, range:%d, angle_sector:%d, angle_step:%d, speed_of_sound:%d", 
+  //           config.gain,
+  //           config.frequency,
+  //           config.range,
+  //           config.angle_sector,
+  //           config.angle_step,
+  //           config.speed_of_sound);
+
+  bool reconfigure = false;
+
+  //// update parameters from dynamic recondiguration
+  if(params.gain_ != config.gain) {
+    params.gain_ = config.gain;
+    reconfigure = true;
+    ROS_INFO("[%s]: gain changed to %d", ros::this_node::getName().c_str(), params.gain_);
+  }
+  if(params.frequency_ != config.frequency) {
+    params.frequency_ = config.frequency;
+    reconfigure = true;
+    ROS_INFO("[%s]: frequency changed to %d", ros::this_node::getName().c_str(), params.frequency_);
+  }
+  if(params.range_ != config.range) {
+    params.range_ = config.range;
+    reconfigure = true;
+    ROS_INFO("[%s]: range changed to %d", ros::this_node::getName().c_str(), params.range_);
+  }
+  if(params.angle_sector_ != config.angle_sector) {
+    params.angle_sector_ = config.angle_sector;
+    reconfigure = true;
+    ROS_INFO("[%s]: angle_sector changed to %d", ros::this_node::getName().c_str(), params.angle_sector_);
+  }
+  if(params.angle_step_ != config.angle_step) {
+    params.angle_step_ = config.angle_step;
+    reconfigure = true;
+    ROS_INFO("[%s]: angle_step changed to %d", ros::this_node::getName().c_str(), params.angle_step_);
+  }
+  if(params.speed_of_sound_ != config.speed_of_sound) {
+    params.speed_of_sound_ = config.speed_of_sound;
+    reconfigure = true;
+    ROS_INFO("[%s]: speed_of_sound changed to %d", ros::this_node::getName().c_str(), params.speed_of_sound_);
+  }
+
+  //// configure system based updated parameters
+  if(reconfigure)
+    configureFromParams();
+}
+
 void Ping360ROS::configureFromParams() {
 
   //// set sonar angle_sector and step
@@ -105,27 +131,28 @@ void Ping360ROS::configureFromParams() {
                                                             params.scan_publish_); {}
 
   if(angle_sector != params.angle_sector_ || step != params.angle_step_) {
-    ROS_INFO("Due to sonar using gradians, sector is %i (requested %i) and step is %i (requested %i)",
+    ROS_WARN("Due to sonar using gradians, sector is %i (requested %i) and step is %i (requested %i)",
               angle_sector, params.angle_sector_, step, params.angle_step_);
   }
 
   //// set sonar transducer
   sonar_->configureTransducer(params.gain_, params.frequency_, params.speed_of_sound_, params.range_);
 
-  //// set sensor message meta-data
+  //// set scan meta-data
   scan_.angle_min = sonar_->angleMin();
   scan_.angle_max = sonar_->angleMax();
   scan_.angle_increment = sonar_->angleStep();
   scan_.time_increment = sonar_->transmitDuration();
   scan_.range_max = params.range_;
 
+  //// set echo meta-data
   echo_.gain = params.gain_;
   echo_.number_of_samples = sonar_->samples();
   echo_.transmit_frequency = params.frequency_;
   echo_.speed_of_sound = params.speed_of_sound_;
   echo_.range = params.range_;
 
-  //// TODO: add re-size image option from dynamic reconfiguration
+  //// set image meta-data
   const int size = params.image_size_;
   if(size != static_cast<int>(image_.step)) {
     image_.data.resize(size*size);
@@ -151,7 +178,7 @@ void Ping360ROS::refresh() {
   
   if(!valid)
   {
-    ROS_WARN("%s: Cannot communicate with sonar", ros::this_node::getName().c_str());
+    ROS_WARN("[%s]: Cannot communicate with sonar", ros::this_node::getName().c_str());
     return;
   }
 

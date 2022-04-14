@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     node.refresh();
     t2 = boost::posix_time::microsec_clock::local_time();
     
-    printf("[TIME COST]: %.4f seconds\n", (t2-t1).total_microseconds() * 1e-6);
+    // printf("[TIME COST]: %.4f seconds\n", (t2-t1).total_microseconds() * 1e-6);
 
     ros::spinOnce();
     // loop_rate.sleep();

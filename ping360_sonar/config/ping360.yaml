@@ -31,7 +31,7 @@ Configuration:
 
   # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
   # Default: 360
-  angle_sector: 360
+  angle_sector: 180
 
   # Note: Sonar angular resolution [degrees], from 1 to 20.
   # Default: 1
@@ -67,7 +67,7 @@ Driver:
 
   # Note: Publish scan on Sensors_msgs/LaserScan
   # Default: false
-  scan_publish: false
+  scan_publish: true
 
   # Note: Intensity threshold for LaserScan message, from 1 to 255
   # Default: 200
@@ -75,7 +75,7 @@ Driver:
 
   # Note: publish raw echo on ping360_msgs/SonarEcho
   # Default: false
-  echo_publish: false
+  echo_publish: true
 
 
 

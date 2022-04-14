@@ -77,7 +77,7 @@ public:
   void serverCallback(ping360_sonar::SonarConfig &config, uint32_t level);
 
   int getTriggerRate() { return params.trigger_rate_; };
-  
+
 private:
   void configureFromParams();
 
