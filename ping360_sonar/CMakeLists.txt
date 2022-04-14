@@ -15,6 +15,10 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
+generate_dynamic_reconfigure_options(
+  cfg/Sonar.cfg
+)
+
 add_subdirectory(dependency)
 
 ###################################
@@ -25,7 +29,7 @@ catkin_package(
  # LIBRARIES ping360_sonar
  CATKIN_DEPENDS   roscpp rospy std_msgs sensor_msgs 
                   dynamic_reconfigure ping360_msgs
-                  image_transport
+                  image_transport 
  # DEPENDS system_lib
 )
 
@@ -53,7 +57,7 @@ add_executable(${PROJECT_NAME}_node ${Source_Files})
 target_compile_options(${PROJECT_NAME}_node PRIVATE "-Wno-unused-function")
 target_include_directories(${PROJECT_NAME}_node PRIVATE include dependency/ping-cpp/src)
 target_link_libraries(${PROJECT_NAME}_node ping-cpp ${catkin_LIBRARIES})
-
+add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
 
 #### TEST
 

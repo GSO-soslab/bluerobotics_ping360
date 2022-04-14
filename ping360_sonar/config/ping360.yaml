@@ -25,7 +25,7 @@ Configuration:
   # Default: 740
   frequency: 740
 
-  # Note: Sonar max range [m]
+  # Note: Sonar max range [m], from 1 to 50
   # Default: 2
   range: 2
 
@@ -37,18 +37,22 @@ Configuration:
   # Default: 1
   angle_step: 1
 
-  # Note: Speed of sound [m/s]
+  # Note: Speed of sound [m/s], from 1450 to 1550
   # Default: 1500
   speed_of_sound: 1500
 
-  # Note: frame_id in ROS messages
-  frame_id: pin360_link
+  # Note: trigger rate [Hz], example: 10hz, 0.1s to trigger sonar rotate some degree, from 1 to ?
+  # Default: 10
+  trigger_rate: 10
 
 ###################################################################
 ########################### ROS Driver ############################
 ###################################################################
 
 Driver:
+  # Note: frame_id in ROS messages
+  frame_id: pin360_link
+
   # Note: Publish images on Sensors_msgs/Image
   # Default: true
   image_publish: true
@@ -63,7 +67,7 @@ Driver:
 
   # Note: Publish scan on Sensors_msgs/LaserScan
   # Default: false
-  scan_publish: true
+  scan_publish: false
 
   # Note: Intensity threshold for LaserScan message, from 1 to 255
   # Default: 200
@@ -72,3 +76,9 @@ Driver:
   # Note: publish raw echo on ping360_msgs/SonarEcho
   # Default: false
   echo_publish: false
+
+
+
+##################################################################
+############################ Just Test ###########################
+##################################################################

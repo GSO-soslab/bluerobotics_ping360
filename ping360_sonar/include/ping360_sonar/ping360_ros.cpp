@@ -7,7 +7,8 @@ using namespace ping360_sonar;
 
 Ping360ROS::Ping360ROS(const ros::NodeHandle &nh,
                        const ros::NodeHandle &nh_private)
-  : nh_(nh), nh_private_(nh_private), it_(nh_)
+  : nh_(nh), nh_private_(nh_private), it_(nh_), 
+    nh_config_("~Configuration"), server_(nh_config_)
 {
   //// setup parameters
   loadParamters();
@@ -27,8 +28,34 @@ Ping360ROS::Ping360ROS(const ros::NodeHandle &nh,
   image_.is_bigendian = 0;
 
   configureFromParams();
+
+  //// load dynamic reconfiguration
+  server_.setCallback(boost::bind(&Ping360ROS::serverCallback, this, _1, _2));
 }
-                                  
+
+void Ping360ROS::serverCallback(ping360_sonar::SonarConfig &config, uint32_t level)
+{
+  ROS_INFO("Reconfigure: gain:%d, frequency:%d, range:%d, angle_sector:%d, angle_step:%d, speed_of_sound:%d", 
+            config.gain,
+            config.frequency,
+            config.range,
+            config.angle_sector,
+            config.angle_step,
+            config.speed_of_sound);
+
+  // if(last_sci_manual != config.Manual) {
+
+  //   std_msgs::String task;
+  //   task.data = config.Manual;
+
+  //   pub_sciTask.publish(task);
+
+  //   // printf("send from onboard:%s\n", config.Manual.c_str());
+
+  //   last_sci_manual = config.Manual;
+  // }
+}
+
 void Ping360ROS::loadParamters() {
 
   //// Get serial interface parameters
@@ -46,9 +73,10 @@ void Ping360ROS::loadParamters() {
   nh_private_.param<int>("Configuration/angle_sector", params.angle_sector_, 360);
   nh_private_.param<int>("Configuration/angle_step", params.angle_step_, 1);
   nh_private_.param<int>("Configuration/speed_of_sound", params.speed_of_sound_, 1500);
-  nh_private_.param<std::string>("Configuration/frame_id", params.frame_id_, "ping360_link");
+  nh_private_.param<int>("Configuration/trigger_rate", params.trigger_rate_, 10);
 
   //// Get ROS driver parameters
+  nh_private_.param<std::string>("Driver/frame_id", params.frame_id_, "ping360_link");
   nh_private_.param<bool>("Driver/image_publish", params.image_publish_, true);
   nh_private_.param<int>("Driver/image_size", params.image_size_, 300);
   nh_private_.param<int>("Driver/image_rate_ms", params.image_rate_ms_, 100);
