@@ -12,6 +12,11 @@ Interface:
   # Note: Emulates a sonar if Ping360 cannot be initialized
   emulates: true
 
+  connection_type: "udp"
+
+  udp_address: "192.168.2.104"
+
+  udp_port: 12345
 ###################################################################
 ###################### Sonar Configuration ########################
 ###################################################################

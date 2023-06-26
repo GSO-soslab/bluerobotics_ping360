@@ -29,6 +29,12 @@ struct Params{
   //// Emulates a sonar if Ping360 cannot be initialized
   bool emulates_;
 
+  std::string connection_type_; 
+
+  std::string udp_address_;
+  
+  int udp_port_;
+
   /************ Sonar configuration ************/
   //// Sonar gain (0 = low, 1 = normal, 2 = high)
   int gain_;
