@@ -14,7 +14,7 @@ Ping360ROS::Ping360ROS(const ros::NodeHandle &nh,
   loadParamters();
 
   //// setup objects
-  sonar_ = std::make_shared<Ping360Interface>(params.device_, params.baudrate_, params.emulates_);
+  sonar_ = std::make_shared<Ping360Interface>(params.device_, params.baudrate_, params.emulates_, params.connection_type_, params.udp_address_, params.udp_port_);
   sector_ = std::make_shared<Sector>();
 
   //// setup constant initialization for sensor data 
@@ -36,12 +36,18 @@ Ping360ROS::Ping360ROS(const ros::NodeHandle &nh,
 void Ping360ROS::loadParamters() {
 
   //// Get serial interface parameters
-  if(!nh_private_.getParam("Interface/device", params.device_)) {
-      ROS_ERROR("No Serial Device is given, exit now!");
-      exit(EXIT_FAILURE);
-  }
+  // if(!nh_private_.getParam("Interface/device", params.device_)) {
+  //     ROS_ERROR("No Serial Device is given, exit now!");
+  //     exit(EXIT_FAILURE);
+  // }
+
+  nh_private_.getParam("Interface/device", params.device_);
   nh_private_.param<int>("Interface/baudrate", params.baudrate_, 115200);
   nh_private_.param<bool>("Interface/emulates", params.emulates_, true);
+
+  nh_private_.param<std::string>("Interface/connection_type", params.connection_type_, "udp");
+  nh_private_.param<std::string>("Interface/udp_address", params.udp_address_, "192.168.2.104");
+  nh_private_.param<int>("Interface/udp_port", params.udp_port_, 12345);
 
   //// Get sonar configuration parameters
   nh_private_.param<int>("Configuration/gain", params.gain_, 0);
