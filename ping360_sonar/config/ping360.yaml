@@ -27,12 +27,12 @@ Configuration:
   gain: 0
 
   # Note: Sonar operating frequency [kHz], from 650 to 850
-  # Default: 740
-  frequency: 740
+  # Default: 750
+  frequency: 750
 
   # Note: Sonar max range [m], from 1 to 50
   # Default: 2
-  range: 2
+  range: 2 
 
   # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
   # Default: 360
@@ -56,7 +56,7 @@ Configuration:
 
 Driver:
   # Note: frame_id in ROS messages
-  frame_id: pin360_link
+  frame_id: ping360_link
 
   # Note: Publish images on Sensors_msgs/Image
   # Default: true
