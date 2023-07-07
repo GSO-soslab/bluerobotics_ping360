@@ -6,16 +6,14 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 #include <ping360_msgs/SonarEcho.h>
 #include <dynamic_reconfigure/server.h>
 
 #include <ping360_sonar/sonar_interface.h>
 #include <ping360_sonar/sector.h>
 #include <ping360_sonar/SonarConfig.h>
-
-// #include <cv_bridge/cv_bridge.h>
-// #include <opencv2/imgproc/imgproc.hpp>
-// #include <opencv2/highgui/highgui.hpp>
 
 namespace ping360_sonar
 {
@@ -66,6 +64,8 @@ struct Params{
   int scan_threshold_;
   //// Publish echo or not
   bool echo_publish_;
+  //// Publish PointCloud or not
+  bool pcl_publish_;
 };
 
 class Ping360ROS
@@ -93,6 +93,11 @@ private:
 
   void publishImage(const ros::Time &now);
 
+  void publishPointCloud2(const ros::Time &now);
+
+  std::vector<double> linspace(double start, double end, int num);
+
+
 
   //// ros node
   ros::NodeHandle nh_;
@@ -103,6 +108,7 @@ private:
   image_transport::Publisher pub_image_;
   ros::Publisher pub_scan_;
   ros::Publisher pub_echo_;
+  ros::Publisher pub_pcl_;
   //// ros dynamci reconfiguration
   dynamic_reconfigure::Server<ping360_sonar::SonarConfig> server_;
 
@@ -114,6 +120,7 @@ private:
   sensor_msgs::Image image_;
   sensor_msgs::LaserScan scan_;
   ping360_msgs::SonarEcho echo_;
+  sensor_msgs::PointCloud2 pcl_;
 
   //// paramters
   Params params;
