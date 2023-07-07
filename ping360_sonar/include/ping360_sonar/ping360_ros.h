@@ -15,10 +15,6 @@
 #include <ping360_sonar/sector.h>
 #include <ping360_sonar/SonarConfig.h>
 
-#include <cv_bridge/cv_bridge.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
 namespace ping360_sonar
 {
 

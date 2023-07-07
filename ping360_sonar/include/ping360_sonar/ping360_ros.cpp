@@ -336,7 +336,7 @@ void Ping360ROS::publishPointCloud2(const ros::Time &now){
         *iterY = x[i] * std::sin(sonar_->currentAngle());
         *iterZ = 0;
 
-        *iterIntensity = static_cast<uchar>(data[i]);
+        *iterIntensity = data[i];
 
         // // Increment the iterators
         ++iterX;
