@@ -66,6 +66,7 @@ void Ping360ROS::loadParamters() {
   nh_private_.param<bool>("Driver/scan_publish", params.scan_publish_, false);
   nh_private_.param<int>("Driver/scan_threshold", params.scan_threshold_, 200);
   nh_private_.param<bool>("Driver/echo_publish", params.echo_publish_, false);
+  nh_private_.param<bool>("Driver/pcl_publish", params.pcl_publish_, true);
 
   //// Info all the parameters
   // ROS_INFO("\nSerial Parameters:\n device:%s, baudrate:%d", 
@@ -176,6 +177,8 @@ void Ping360ROS::configureFromParams() {
     pub_scan_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
   if(params.echo_publish_)
     pub_echo_ = nh_.advertise<ping360_msgs::SonarEcho>("echo", 10);
+  if(params.pcl_publish_)
+    pub_pcl_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud",10);
 }
 
 void Ping360ROS::refresh() {
@@ -197,6 +200,9 @@ void Ping360ROS::refresh() {
 
   if(params.image_publish_)
     publishImage(now);
+
+  if(params.pcl_publish_)
+    publishPointCloud2(now);
 }                       
 
 void Ping360ROS::publishEcho(const ros::Time &now) {
@@ -275,3 +281,80 @@ void Ping360ROS::publishImage(const ros::Time &now) {
   pub_image_.publish(image_);
 }
 
+void Ping360ROS::publishPointCloud2(const ros::Time &now){
+  //Get current intensity
+    const auto [data, length] = sonar_->intensities(); {}
+  //Define message
+    sensor_msgs::PointCloud2Modifier modifier(pcl_);
+    modifier.setPointCloud2Fields(4,
+      "x", 1, sensor_msgs::PointField::FLOAT32,
+      "y", 1, sensor_msgs::PointField::FLOAT32,
+      "z", 1, sensor_msgs::PointField::FLOAT32,
+      "intensity", 1, sensor_msgs::PointField::FLOAT32);
+
+    int number_of_bins;
+    int range_min = 0.75;
+    pcl_.header.stamp = now;
+    pcl_.header.frame_id = params.frame_id_;
+    pcl_.height = 1;
+
+  //Data sheet
+    if (params.range_ == 1){
+      number_of_bins = 666;
+    }
+    else{
+      number_of_bins = 1200;
+    }
+
+    pcl_.width = number_of_bins;
+    pcl_.is_dense = true;
+
+    pcl_.point_step = 16;
+    pcl_.row_step =pcl_.point_step * pcl_.width;;
+    pcl_.data.resize(pcl_.width * pcl_.point_step);
+
+    std::vector<double> x = Ping360ROS::linspace(range_min, params.range_, number_of_bins);
+    
+    // for (const auto& number : x) {
+    //     std::cout << number << " ";
+    // }
+    // std::cout << std::endl;
+    
+    // // Using a traditional for loop
+    // for (size_t i = 0; i < x.size(); ++i) {
+    //     std::cout << x[i] << " ";
+    // }
+    // std::cout << std::endl;
+
+    sensor_msgs::PointCloud2Iterator<float> iterX(pcl_, "x");
+    sensor_msgs::PointCloud2Iterator<float> iterY(pcl_, "y");
+    sensor_msgs::PointCloud2Iterator<float> iterZ(pcl_, "z");
+    sensor_msgs::PointCloud2Iterator<float> iterIntensity(pcl_, "intensity");
+
+    for (int i = 0; i < pcl_.width; ++i) {
+        *iterX = x[i] * std::cos(sonar_->currentAngle());
+        *iterY = x[i] * std::sin(sonar_->currentAngle());
+        *iterZ = 0;
+
+        *iterIntensity = static_cast<uchar>(data[i]);
+
+        // // Increment the iterators
+        ++iterX;
+        ++iterY;
+        ++iterZ;
+        ++iterIntensity;
+    }
+    pub_pcl_.publish(pcl_);
+}
+
+std::vector<double> Ping360ROS::linspace(double start, double end, int num) {
+    std::vector<double> result;
+    double step = (end - start) / (num - 1);
+    
+    for (int i = 0; i < num; ++i) {
+        double value = start + i * step;
+        result.push_back(value);
+    }
+    
+    return result;
+}

@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp rospy std_msgs sensor_msgs 
   dynamic_reconfigure ping360_msgs
   image_transport
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 generate_dynamic_reconfigure_options(
@@ -41,6 +42,8 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
+  "/usr/include/opencv4/"
 )
 
 link_directories(

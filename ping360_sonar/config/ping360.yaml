@@ -12,6 +12,7 @@ Interface:
   # Note: Emulates a sonar if Ping360 cannot be initialized
   emulates: true
 
+  #If serial, use "serial", elif ethernet, "udp"
   connection_type: "udp"
 
   udp_address: "192.168.2.104"
@@ -32,11 +33,11 @@ Configuration:
 
   # Note: Sonar max range [m], from 1 to 50
   # Default: 2
-  range: 2 
+  range: 20
 
   # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
   # Default: 360
-  angle_sector: 180
+  angle_sector: 360
 
   # Note: Sonar angular resolution [degrees], from 1 to 20.
   # Default: 1
@@ -72,7 +73,7 @@ Driver:
 
   # Note: Publish scan on Sensors_msgs/LaserScan
   # Default: false
-  scan_publish: true
+  scan_publish: false
 
   # Note: Intensity threshold for LaserScan message, from 1 to 255
   # Default: 200
@@ -80,7 +81,10 @@ Driver:
 
   # Note: publish raw echo on ping360_msgs/SonarEcho
   # Default: false
-  echo_publish: true
+  echo_publish: false
+
+  #Note: publish PointCloud2 message
+  pcl_publish : true
 
 
 
