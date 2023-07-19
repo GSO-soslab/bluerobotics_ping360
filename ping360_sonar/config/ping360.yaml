@@ -33,11 +33,19 @@ Configuration:
 
   # Note: Sonar max range [m], from 1 to 50
   # Default: 2
-  range: 20
+  range: 2
+  
+  # Note: The custom sector has to include either 0 or 1 gradian.
+  custom_sector: true
+  
+  # These are in gradians. 360 degrees = 400 gradians. [0-100] is top left quadrant.
+  angle_min: 2
+  
+  angle_max: 100
 
   # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
   # Default: 360
-  angle_sector: 360
+  angle_sector: 200
 
   # Note: Sonar angular resolution [degrees], from 1 to 20.
   # Default: 1
@@ -81,7 +89,7 @@ Driver:
 
   # Note: publish raw echo on ping360_msgs/SonarEcho
   # Default: false
-  echo_publish: false
+  echo_publish: true
 
   #Note: publish PointCloud2 message
   pcl_publish : true

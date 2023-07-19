@@ -54,6 +54,11 @@ void Ping360ROS::loadParamters() {
   nh_private_.param<int>("Configuration/frequency", params.frequency_, 740);
   nh_private_.param<int>("Configuration/range", params.range_, 2);
   nh_private_.param<int>("Configuration/angle_sector", params.angle_sector_, 360);
+
+  nh_private_.param<bool>("Configuration/custom_sector", params.custom_sector_, false);
+  nh_private_.param<int>("Configuration/angle_min", params.angle_min_,0);
+  nh_private_.param<int>("Configuration/angle_max", params.angle_max_,400);
+
   nh_private_.param<int>("Configuration/angle_step", params.angle_step_, 1);
   nh_private_.param<int>("Configuration/speed_of_sound", params.speed_of_sound_, 1500);
   nh_private_.param<int>("Configuration/trigger_rate", params.trigger_rate_, 10);
@@ -135,7 +140,10 @@ void Ping360ROS::configureFromParams() {
   //// set sonar angle_sector and step
   const auto [angle_sector, step] = sonar_->configureAngles(params.angle_sector_,
                                                             params.angle_step_,
-                                                            params.scan_publish_); {}
+                                                            params.scan_publish_, 
+                                                            params.custom_sector_,
+                                                            params.angle_min_,
+                                                            params.angle_max_); {}
 
   if(angle_sector != params.angle_sector_ || step != params.angle_step_) {
     ROS_WARN("Due to sonar using gradians, sector is %i (requested %i) and step is %i (requested %i)",

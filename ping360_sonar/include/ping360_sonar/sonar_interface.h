@@ -22,7 +22,7 @@ public:
   }
   std::pair<bool, bool> read();
 
-  std::pair<int, int> configureAngles(int aperture_deg, int step_deg, bool align_step);
+  std::pair<int, int> configureAngles(int aperture_deg, int step_deg, bool align_step, bool custom_sector, int angle_min, int angle_max);
   void configureTransducer(uint8_t gain, uint16_t frequency, uint16_t speed_of_sound, float range);
 
   inline float rangeFrom(int index) const
