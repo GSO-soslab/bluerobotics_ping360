@@ -40,14 +40,19 @@ struct Params{
   int frequency_;
   //// Sonar max range [m]
   int range_;
-  //// Scanned angular sector around sonar heading [degrees]
+
+  //// Legacy mode
+  bool legacy_enabled_;
   int angle_sector_;
-  /// If using custom angular sector [true/false]
-  bool custom_sector_;
-  /// Min angle.
+
+  /// Custom mode
+  bool custom_enabled_;
   int angle_min_;
-  /// Max angle.
   int angle_max_;
+  /// Sector mode
+  bool slice_;
+  int min_angle_;
+  
   //// Sonar angular resolution [degrees]
   int angle_step_;
   //// Speed of sound [m/s]

@@ -20,7 +20,7 @@ public:
     sonar->set_motor_off();
     sonar->waitMessage(CommonId::ACK, 1000);
   }
-  std::pair<bool, bool> read();
+  std::pair<bool, bool> read(bool slice, int min_angle);
 
   std::pair<int, int> configureAngles(int aperture_deg, int step_deg, bool align_step, bool custom_sector, int angle_min, int angle_max);
   void configureTransducer(uint8_t gain, uint16_t frequency, uint16_t speed_of_sound, float range);
@@ -41,7 +41,7 @@ public:
       return (angle-angle_min)/angle_step;
     return (angle-angle_max)/angle_step;
   }
-  bool updateAngle();
+  bool updateAngle(bool slice, int min_angle);
 
   inline uint16_t samples() const
   {
