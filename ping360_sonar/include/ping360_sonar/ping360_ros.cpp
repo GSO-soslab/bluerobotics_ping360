@@ -53,10 +53,24 @@ void Ping360ROS::loadParamters() {
   nh_private_.param<int>("Configuration/gain", params.gain_, 0);
   nh_private_.param<int>("Configuration/frequency", params.frequency_, 740);
   nh_private_.param<int>("Configuration/range", params.range_, 2);
-  nh_private_.param<int>("Configuration/angle_sector", params.angle_sector_, 360);
   nh_private_.param<int>("Configuration/angle_step", params.angle_step_, 1);
   nh_private_.param<int>("Configuration/speed_of_sound", params.speed_of_sound_, 1500);
   nh_private_.param<int>("Configuration/trigger_rate", params.trigger_rate_, 10);
+
+  //Get sector parameters
+  nh_private_.param<bool>("Sector/legacy_mode/enabled", params.legacy_enabled_, false);
+  nh_private_.param<int>("Sector/legacy_mode/angle_sector", params.angle_sector_, 360);
+
+  nh_private_.param<bool>("Sector/custom_mode/enabled", params.custom_enabled_,false);
+  nh_private_.param<int>("Sector/custom_mode/angle_min", params.angle_min_,0);
+  nh_private_.param<int>("Sector/custom_mode/angle_max", params.angle_max_,90);
+  
+  nh_private_.param<bool>("Sector/custom_mode/slice", params.slice_,false);
+  // nh_private_.param<bool>("Configuration/slice", params.slice_, true);
+  nh_private_.param<int>("Sector/custom_mode/min_angle", params.min_angle_, 90); 
+  // nh_private_.param<int>("Configuration/angle_max", params.angle_max_,400);
+
+
 
   //// Get ROS driver parameters
   nh_private_.param<std::string>("Driver/frame_id", params.frame_id_, "ping360_link");
@@ -135,7 +149,10 @@ void Ping360ROS::configureFromParams() {
   //// set sonar angle_sector and step
   const auto [angle_sector, step] = sonar_->configureAngles(params.angle_sector_,
                                                             params.angle_step_,
-                                                            params.scan_publish_); {}
+                                                            params.scan_publish_, 
+                                                            params.custom_enabled_,
+                                                            params.angle_min_,
+                                                            params.angle_max_); {}
 
   if(angle_sector != params.angle_sector_ || step != params.angle_step_) {
     ROS_WARN("Due to sonar using gradians, sector is %i (requested %i) and step is %i (requested %i)",
@@ -183,8 +200,9 @@ void Ping360ROS::configureFromParams() {
 
 void Ping360ROS::refresh() {
 
-  const auto &[valid, end_turn] = sonar_->read(); {}
-  
+  const auto &[valid, end_turn] = sonar_->read(params.slice_, params.min_angle_); {}
+  // std::cout<<params.min_angle_<<std::endl;
+
   if(!valid)
   {
     ROS_WARN("[%s]: Cannot communicate with sonar", ros::this_node::getName().c_str());

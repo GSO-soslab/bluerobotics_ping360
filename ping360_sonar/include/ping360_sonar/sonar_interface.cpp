@@ -35,7 +35,7 @@ Ping360Interface::Ping360Interface(std::string device, int baudrate, bool fallba
   real_sonar = false;
 }
 
-std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step_deg, bool ensure_divisor)
+std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step_deg, bool ensure_divisor, bool custom_sector, int min_angle, int max_angle)
 {
   // to gradians
   const auto target_half_aperture{int(aperture_deg*200./360+0.5)};
@@ -75,8 +75,17 @@ std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step
     }
   }
 
-  angle_min = -best_half_aperture;
-  angle_max = best_half_aperture;
+  //If using custom sector, the angles are user defined.
+  if (custom_sector){
+    angle_min = min_angle * 1.111;
+    angle_max = max_angle * 1.111;    
+  }
+  //If using legacy sector, then
+  else{
+    angle_min = -best_half_aperture;
+    angle_max = best_half_aperture;
+  }
+
   if(fullScan())
     angle_max -= angle_step;
 
@@ -138,8 +147,9 @@ void Ping360Interface::configureTransducer(uint8_t gain, uint16_t frequency, uin
   }
 }
 
-bool Ping360Interface::updateAngle()
+bool Ping360Interface::updateAngle(bool slice, int min_angle)
 {
+
   angle += angle_step;
   if(fullScan())
   {
@@ -153,15 +163,22 @@ bool Ping360Interface::updateAngle()
   if(angle + angle_step >= angle_max || angle + angle_step <= angle_min)
   {
     angle_step *= -1;
+
+    //Reconfiguring angle_min to min_angle. (For sectors that don't need 0 angle)
+    if(slice)
+    {
+    // std::cout<<min_angle<<std::endl;
+    angle_min = min_angle*1.11;
+    }
     return true;
   }
   return false;
 }
 
-std::pair<bool, bool> Ping360Interface::read()
+std::pair<bool, bool> Ping360Interface::read(bool slice, int min_angle)
 {
   // update angle before ping in order to stay sync
-  const auto end_turn = updateAngle();
+  const auto end_turn = updateAngle(slice, min_angle);
 
   auto &device{sonar->device_data_data};
   if(real_sonar)

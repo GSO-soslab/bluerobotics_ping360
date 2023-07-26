@@ -33,11 +33,7 @@ Configuration:
 
   # Note: Sonar max range [m], from 1 to 50
   # Default: 2
-  range: 20
-
-  # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
-  # Default: 360
-  angle_sector: 360
+  range: 2
 
   # Note: Sonar angular resolution [degrees], from 1 to 20.
   # Default: 1
@@ -50,6 +46,24 @@ Configuration:
   # Note: trigger rate [Hz], example: 10hz, 0.1s to trigger sonar rotate some degree, from 1 to ?
   # Default: 10
   trigger_rate: 10
+##################################################################
+####################### Sector Settings ##########################
+##################################################################
+Sector:
+  legacy_mode:
+    # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
+    enabled: false
+    angle_sector: 360
+
+  custom_mode:
+    enabled: true
+    angle_min: 0
+    angle_max: 270
+    # The transducer reads from 0->angle_max->angle_min.
+    # Set slice to true, if you want to restrict the angle_min to min_angle after the first reading. 
+    # (Useful for scans that doesn't require 0 angle reading)
+    slice: false
+    min_angle: 90
 
 ###################################################################
 ########################### ROS Driver ############################
@@ -81,7 +95,7 @@ Driver:
 
   # Note: publish raw echo on ping360_msgs/SonarEcho
   # Default: false
-  echo_publish: false
+  echo_publish: true
 
   #Note: publish PointCloud2 message
   pcl_publish : true
