@@ -58,7 +58,6 @@ void Ping360ROS::loadParamters() {
   nh_private_.param<int>("Configuration/trigger_rate", params.trigger_rate_, 10);
 
   //Get sector parameters
-  nh_private_.param<bool>("Sector/legacy_mode/enabled", params.legacy_enabled_, false);
   nh_private_.param<int>("Sector/legacy_mode/angle_sector", params.angle_sector_, 360);
 
   nh_private_.param<bool>("Sector/custom_mode/enabled", params.custom_enabled_,false);

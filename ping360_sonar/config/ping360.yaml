@@ -52,7 +52,6 @@ Configuration:
 Sector:
   legacy_mode:
     # Note: Scanned angular sector around sonar heading [degrees], from 60 to 360. Will oscillate if not 360.
-    enabled: false
     angle_sector: 360
 
   custom_mode:
