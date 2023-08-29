@@ -42,7 +42,6 @@ struct Params{
   int range_;
 
   //// Legacy mode
-  bool legacy_enabled_;
   int angle_sector_;
 
   /// Custom mode
