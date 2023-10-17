@@ -99,8 +99,13 @@ Driver:
   #Note: publish PointCloud2 message
   pcl_publish : true
 
-
-
+  # Note: Publish filtered pointclouds
+  filtered_pointcloud:
+    publish: true
+    # Hyperparameter for intensity consideration. (mean + std_dev_multiplier * std_dev )
+    std_dev_multiplier: 1.8
+    # Hyperparameter for distance consideration (All points within radius distance are dropped)
+    radius: 2
 ##################################################################
 ############################ Just Test ###########################
 ##################################################################
