@@ -15,7 +15,7 @@ Interface:
   #If serial, use "serial", elif ethernet, "udp"
   connection_type: "udp"
 
-  udp_address: "192.168.2.104"
+  udp_address: "192.168.2.105"
 
   udp_port: 12345
 ###################################################################
