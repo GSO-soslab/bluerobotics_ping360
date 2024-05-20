@@ -7,7 +7,7 @@
 
     <!--Filtering node for pointcloud-->
     <node pkg="ping360_sonar" type="processing.py" name = "pcl_filter_node" output="screen">
-        <remap from="/msis" to="/alpha_rise/pointcloud"/>
+        <remap from="/msis" to="/pointcloud"/>
         <remap from="/filtered_msis" to="/alpha_rise/pointcloud/filtered"/>
     </node>
           
