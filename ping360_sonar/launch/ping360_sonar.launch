@@ -7,16 +7,5 @@
     <node ns="$(arg robot_name)" pkg="ping360_sonar" type="ping360_sonar_node" name="ping360_sonar_node" output="screen">
         <rosparam command="load" file="$(find ping360_sonar)/config/ping360.yaml"/>
     </node>
-
-    <!--Filtering node for pointcloud-->
-    <node pkg="ping360_sonar" type="processing.py" name = "pcl_filter_node" output="screen">
-        <remap from="/msis" to="/alpha_rise/msis/pointcloud"/>
-        <remap from="/filtered_msis" to="/alpha_rise/msis/pointcloud/filtered"/>
-    </node>
-
-     <!-- <node pkg="tf" type="static_transform_publisher" name="laser_link" args="0 0 0 0 0 0 /map /ping360_link 100"/> -->
-
-    <node name="rviz" pkg="rviz" type="rviz"  
-          args="--opengl 300 -d $(find ping360_sonar)/launch/ping360_sonar.rviz" /> 
           
 </launch>
