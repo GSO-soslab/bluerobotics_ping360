@@ -311,6 +311,9 @@ void Ping360ROS::publishPointCloud2(const ros::Time &now){
 
     int number_of_bins;
     int range_min = 0.75;
+    float cos_current_angle = std::cos(sonar_->currentAngle());
+    float sin_current_angle = std::sin(sonar_->currentAngle());
+
     pcl_.header.stamp = now;
     pcl_.header.frame_id = params.frame_id_;
     pcl_.height = 1;
@@ -349,8 +352,8 @@ void Ping360ROS::publishPointCloud2(const ros::Time &now){
     sensor_msgs::PointCloud2Iterator<float> iterIntensity(pcl_, "intensity");
 
     for (int i = 0; i < pcl_.width; ++i) {
-        *iterX = x[i] * std::cos(sonar_->currentAngle());
-        *iterY = x[i] * std::sin(sonar_->currentAngle());
+        *iterX = x[i] * cos_current_angle;
+        *iterY = x[i] * sin_current_angle;
         *iterZ = 0;
 
         *iterIntensity = data[i];
