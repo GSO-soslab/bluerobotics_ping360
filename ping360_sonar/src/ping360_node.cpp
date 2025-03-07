@@ -20,10 +20,13 @@ int main(int argc, char **argv) {
     node.refresh();
     t2 = boost::posix_time::microsec_clock::local_time();
     
-    // printf("[TIME COST]: %.4f seconds\n", (t2-t1).total_microseconds() * 1e-6);
+    //! DEBUG: max 25hz
+    // auto process_time = (t2-t1).total_microseconds() * 1e-6;
+    // printf("[TIME COST]: %.4f seconds, the max rate could be=%d\n", 
+    //       process_time, (int)(1/process_time));
 
     ros::spinOnce();
-    // loop_rate.sleep();
+    loop_rate.sleep();
   }
 
   return 0;
