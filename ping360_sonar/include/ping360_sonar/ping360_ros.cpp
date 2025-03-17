@@ -188,13 +188,13 @@ void Ping360ROS::configureFromParams() {
 
   //// setup publishers
   if(params.image_publish_)
-    pub_image_ = it_.advertise("image", 10);
+    pub_image_ = it_.advertise("msis/image", 10);
   if(params.scan_publish_)
-    pub_scan_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 10);
+    pub_scan_ = nh_.advertise<sensor_msgs::LaserScan>("msis/scan", 10);
   if(params.echo_publish_)
-    pub_echo_ = nh_.advertise<ping360_msgs::SonarEcho>("echo", 10);
+    pub_echo_ = nh_.advertise<ping360_msgs::SonarEcho>("msis/echo", 10);
   if(params.pcl_publish_)
-    pub_pcl_ = nh_.advertise<sensor_msgs::PointCloud2>("pointcloud",10);
+    pub_pcl_ = nh_.advertise<sensor_msgs::PointCloud2>("msis/pointcloud",10);
 }
 
 void Ping360ROS::refresh() {
