@@ -1,68 +1,50 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(ping360_sonar)
 
 set(CMAKE_CXX_STANDARD 17)
 
-###################################
-## find ros or non-ros packages ##
-###################################
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-find_package(Boost REQUIRED COMPONENTS system)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp rospy std_msgs sensor_msgs 
-  dynamic_reconfigure ping360_msgs
-  image_transport
+
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(ping360_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
 )
 
-generate_dynamic_reconfigure_options(
-  cfg/Sonar.cfg
-)
 
+# build BlueRobotics' ping-cpp  standalone    
 add_subdirectory(dependency)
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
- INCLUDE_DIRS include
- # LIBRARIES ping360_sonar
- CATKIN_DEPENDS   roscpp rospy std_msgs sensor_msgs 
-                  dynamic_reconfigure ping360_msgs
-                  image_transport 
- # DEPENDS system_lib
-)
+# main code is a node class + standalone executable
+add_executable(ping360_node src/ping360_node.cpp src/ping360.cpp src/sonar_interface.cpp src/sector.cpp)
+# avoid this warning from BlueRobotics' ping-cpp
+target_compile_options(ping360_node PRIVATE "-Wno-unused-function")
+if(REAL_SONAR)
+    target_compile_definitions(ping360_node PUBLIC REAL_SONAR)
+endif()
+target_include_directories(ping360_node PRIVATE include dependency/ping-cpp/src)
+target_link_libraries(ping360_node ping-cpp)
+ament_target_dependencies(ping360_node rclcpp sensor_msgs ping360_msgs image_transport)  
 
-###################
-## Build Process ##
-###################
+install(TARGETS ping360_node ping-cpp
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME})
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIR}
-)
-
-link_directories(
-  ${Boost_LIBRARY_DIR}
-)
-
-
-file(GLOB Source_Files 
-  include/${PROJECT_NAME}/*.cpp
-  src/ping360_node.cpp
-)
-
-add_executable(${PROJECT_NAME}_node ${Source_Files})
-target_compile_options(${PROJECT_NAME}_node PRIVATE "-Wno-unused-function")
-target_include_directories(${PROJECT_NAME}_node PRIVATE include dependency/ping-cpp/src)
-target_link_libraries(${PROJECT_NAME}_node ping-cpp ${catkin_LIBRARIES})
-add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
-
-#### TEST
-
-
-
-#############
-## Install ##
-#############
+ament_package()

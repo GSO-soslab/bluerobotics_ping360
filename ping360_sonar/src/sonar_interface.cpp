@@ -1,4 +1,5 @@
 #include <ping360_sonar/sonar_interface.h>
+#include <thread>
 
 
 constexpr static int firmwareMaxSamples{1200};
@@ -23,6 +24,7 @@ Ping360Interface::Ping360Interface(std::string device, int baudrate, bool fallba
     udp_link = std::make_unique<UdpLink>(udp_address, std::to_string(udp_port));
     sonar = std::make_unique<Ping360>(*udp_link.get());
   }
+
   // try to init the real sonar anyway
   if(sonar->initialize())
   {
@@ -35,7 +37,7 @@ Ping360Interface::Ping360Interface(std::string device, int baudrate, bool fallba
   real_sonar = false;
 }
 
-std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step_deg, bool ensure_divisor, bool custom_sector, int min_angle, int max_angle)
+std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step_deg, bool ensure_divisor)
 {
   // to gradians
   const auto target_half_aperture{int(aperture_deg*200./360+0.5)};
@@ -75,17 +77,8 @@ std::pair<int, int> Ping360Interface::configureAngles(int aperture_deg, int step
     }
   }
 
-  //If using custom sector, the angles are user defined.
-  if (custom_sector){
-    angle_min = min_angle * 1.111;
-    angle_max = max_angle * 1.111;    
-  }
-  //If using legacy sector, then
-  else{
-    angle_min = -best_half_aperture;
-    angle_max = best_half_aperture;
-  }
-
+  angle_min = -best_half_aperture;
+  angle_max = best_half_aperture;
   if(fullScan())
     angle_max -= angle_step;
 
@@ -147,9 +140,8 @@ void Ping360Interface::configureTransducer(uint8_t gain, uint16_t frequency, uin
   }
 }
 
-bool Ping360Interface::updateAngle(bool slice, int min_angle)
+bool Ping360Interface::updateAngle()
 {
-
   angle += angle_step;
   if(fullScan())
   {
@@ -163,28 +155,21 @@ bool Ping360Interface::updateAngle(bool slice, int min_angle)
   if(angle + angle_step >= angle_max || angle + angle_step <= angle_min)
   {
     angle_step *= -1;
-
-    //Reconfiguring angle_min to min_angle. (For sectors that don't need 0 angle)
-    if(slice)
-    {
-    // std::cout<<min_angle<<std::endl;
-    angle_min = min_angle*1.11;
-    }
     return true;
   }
   return false;
 }
 
-std::pair<bool, bool> Ping360Interface::read(bool slice, int min_angle)
+std::pair<bool, bool> Ping360Interface::read()
 {
   // update angle before ping in order to stay sync
-  const auto end_turn = updateAngle(slice, min_angle);
+  const auto end_turn = updateAngle();
 
   auto &device{sonar->device_data_data};
+
   if(real_sonar)
   {
-    //// TEST:
-    // std::cout << "transmit_duration: " << device.transmit_duration << std::endl;
+    std::cout << device.transmit_duration << std::endl;
     sonar->set_transducer(device.mode,
                          device.gain_setting,
                          angle > 0 ? angle : angle+400,
@@ -194,7 +179,7 @@ std::pair<bool, bool> Ping360Interface::read(bool slice, int min_angle)
                          device.number_of_samples,
                          1,
                          0);
-    return {sonar->waitMessage(Ping360Id::DEVICE_DATA, 8000) != nullptr, end_turn};
+    return {sonar->waitMessage(Ping360Id::DEVICE_DATA, timeout) != nullptr, end_turn};
   }
 
   // emulated sonar: randomly populate data

@@ -1,5 +1,5 @@
-#include <iostream>
 #include <ping360_sonar/sector.h>
+#include <iostream>
 
 using namespace ping360_sonar;
 

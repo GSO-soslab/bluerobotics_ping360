@@ -12,7 +12,7 @@ namespace ping360_sonar
 class Ping360Interface
 {
 public:
-  Ping360Interface(std::string device, int baudrate, bool fallback,  std::string connection_type, std::string udp_address, int udp_port);
+  Ping360Interface(std::string device, int baudrate, bool fallback, std::string connection_type, std::string udp_address, int udp_port);
   ~Ping360Interface()
   {
     if(!real_sonar)
@@ -20,9 +20,9 @@ public:
     sonar->set_motor_off();
     sonar->waitMessage(CommonId::ACK, 1000);
   }
-  std::pair<bool, bool> read(bool slice, int min_angle);
+  std::pair<bool, bool> read();
 
-  std::pair<int, int> configureAngles(int aperture_deg, int step_deg, bool align_step, bool custom_sector, int angle_min, int angle_max);
+  std::pair<int, int> configureAngles(int aperture_deg, int step_deg, bool align_step);
   void configureTransducer(uint8_t gain, uint16_t frequency, uint16_t speed_of_sound, float range);
 
   inline float rangeFrom(int index) const
@@ -41,7 +41,10 @@ public:
       return (angle-angle_min)/angle_step;
     return (angle-angle_max)/angle_step;
   }
-  bool updateAngle(bool slice, int min_angle);
+  bool updateAngle();
+
+  void setTimeout(int newTimeout){timeout = newTimeout;}
+  int getTimeout(){return timeout;}
 
   inline uint16_t samples() const
   {
@@ -68,6 +71,7 @@ private:
   bool oscillate;
   int angle_min{}, angle_max{}, angle_step{};
   int angle{};
+  int timeout{8000};
 
 
   static inline float grad2rad(int grad)
