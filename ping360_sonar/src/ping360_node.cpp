@@ -12,7 +12,7 @@ using std::vector;
 Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   : Node("ping360_node", options)
 { 
-  // bounded parameters that are parsed later
+  // Declare Params
   this->declare_parameter<std::string>("device");
   this->declare_parameter<int>("baudrate");
   this->declare_parameter<bool>("fallback_emulated");
@@ -25,6 +25,13 @@ Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   this->declare_parameter<int>("frequency");
   this->declare_parameter<int>("range_max");
   this->declare_parameter<int>("angle_sector");
+
+  this->declare_parameter<bool>("custom_enabled");
+  this->declare_parameter<int>("angle_min");
+  this->declare_parameter<int>("angle_max");
+  this->declare_parameter<bool>("slice");
+  this->declare_parameter<int>("min_angle");
+
   this->declare_parameter<int>("angle_step");
   this->declare_parameter<int>("image_size");
   this->declare_parameter<int>("scan_threshold");
@@ -36,6 +43,8 @@ Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   this->declare_parameter<bool>("publish_image");
   this->declare_parameter<bool>("publish_scan");
   this->declare_parameter<bool>("publish_echo");
+  this->declare_parameter<bool>("publish_pcl");
+
 
   //Get Params
   device_ = this->get_parameter("device").as_string();
@@ -50,6 +59,13 @@ Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   frequency_ = this->get_parameter("frequency").as_int();
   range_max_ = this->get_parameter("range_max").as_int();
   angle_sector_ = this->get_parameter("angle_sector").as_int();
+
+  custom_enabled_ = this->get_parameter("custom_enabled").as_bool();
+  angle_min_ = this->get_parameter("angle_min").as_int();
+  angle_max_ = this->get_parameter("angle_max").as_int();
+  slice_ = this->get_parameter("slice").as_bool();
+  min_angle_ = this->get_parameter("min_angle").as_int();
+
   angle_step_ = this->get_parameter("angle_step").as_int();
   image_size_ = this->get_parameter("image_size").as_int();
   scan_threshold_ = this->get_parameter("scan_threshold").as_int();
@@ -59,7 +75,9 @@ Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   publish_image_ = this->get_parameter("publish_image").as_bool();
   publish_scan_ = this->get_parameter("publish_scan").as_bool();
   publish_echo_ = this->get_parameter("publish_echo").as_bool();
+  publish_pcl_ = this->get_parameter("publish_pcl").as_bool();
 
+  // Create Sonar Object
   sonar = std::make_shared<Ping360Interface>(device_, baudrate_, 
     fallback_emulated_, connection_type_, udp_address_, udp_port_);
 
@@ -126,26 +144,19 @@ SetParametersResult Ping360Sonar::parametersCallback(const vector<rclcpp::Parame
   return SetParametersResult().set__successful(true);
 }
 
-void Ping360Sonar::initPublishers(bool image, bool scan, bool echo)
+void Ping360Sonar::initPublishers(bool image, bool scan, bool echo, bool pcl)
 {
-#ifdef PING360_PUBLISH_RELIABLE
-  const auto qos{rclcpp::QoS(5)};
-#else
-  const auto qos{rclcpp::SensorDataQoS()};
-#endif
-
-  // publish_echo = echo;
-  // publish_image = image;
-  // publish_scan = scan;
-  
   if(image && image_pub.getTopic().empty())
     image_pub = image_transport::create_publisher(this, "msis/image");
 
   if(echo && echo_pub == nullptr)
-    echo_pub = create_publisher<ping360_msgs::msg::SonarEcho>("msis/echo", qos);
+    echo_pub = create_publisher<ping360_msgs::msg::SonarEcho>("msis/echo", 1);
 
   if(scan && scan_pub == nullptr)
-    scan_pub = create_publisher<sensor_msgs::msg::LaserScan>("msis/scan", qos);
+    scan_pub = create_publisher<sensor_msgs::msg::LaserScan>("msis/scan", 1);
+
+  if(pcl && pcl_pub == nullptr)
+    pcl_pub = create_publisher<sensor_msgs::msg::PointCloud2>("msis/pointcloud", 1);
 }
 
 void Ping360Sonar::configureFromParams(const vector<rclcpp::Parameter> &new_params)
@@ -156,7 +167,10 @@ void Ping360Sonar::configureFromParams(const vector<rclcpp::Parameter> &new_para
   // forward to configuration
   const auto [angle_sector, step] = sonar->configureAngles(this->angle_sector_,
       this->angle_step_,
-      this->publish_scan_); {}
+      this->publish_scan_,
+      this->custom_enabled_,
+      this->angle_min_,
+      this->angle_max_); {}
 
       // inform if requested angle config cannot be met because of gradians
   if(angle_sector != this->angle_sector_ || step != this->angle_step_)
@@ -168,7 +182,8 @@ void Ping360Sonar::configureFromParams(const vector<rclcpp::Parameter> &new_para
 
   initPublishers(this->publish_image_,
                  this->publish_scan_,
-                 this->publish_echo_);
+                 this->publish_echo_,
+                 this->publish_pcl_);
 
   sonar->configureTransducer(this->gain_,
                             this->frequency_,
@@ -283,7 +298,7 @@ void Ping360Sonar::refreshImage()
 
 void Ping360Sonar::refresh()
 {
-  const auto &[valid, end_turn] = sonar->read(); {}
+  const auto &[valid, end_turn] = sonar->read(this->slice_, this->min_angle_); {}
   
   if(!valid)
   {
@@ -300,6 +315,9 @@ void Ping360Sonar::refresh()
 
   if(this->publish_scan_ && scan_pub->get_subscription_count())
     publishScan(now, end_turn);
+
+  if(this->publish_pcl_ && pcl_pub->get_subscription_count())
+  publishPcl(now);
 }
 
 void Ping360Sonar::publishImage()
@@ -309,4 +327,74 @@ void Ping360Sonar::publishImage()
     image.header.set__stamp(now());
     image_pub.publish(image);
   }
+}
+
+void Ping360Sonar::publishPcl(const rclcpp::Time &now){
+  //Get current intensity
+    const auto [data, length] = sonar->intensities(); {}
+  //Define message
+    sensor_msgs::PointCloud2Modifier modifier(pcl);
+    modifier.setPointCloud2Fields(4,
+      "x", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "y", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "z", 1, sensor_msgs::msg::PointField::FLOAT32,
+      "intensity", 1, sensor_msgs::msg::PointField::FLOAT32);
+
+    int number_of_bins;
+    int range_min = 0.75;
+    float cos_current_angle = std::cos(sonar->currentAngle());
+    float sin_current_angle = std::sin(sonar->currentAngle());
+
+    pcl.header.stamp = now;
+    pcl.header.frame_id = this->frame_;
+    pcl.height = 1;
+
+  //Data sheet
+    if (this->range_max_ == 1){
+      number_of_bins = 666;
+    }
+    else{
+      number_of_bins = 1200;
+    }
+
+    pcl.width = number_of_bins;
+    pcl.is_dense = true;
+
+    pcl.point_step = 16;
+    pcl.row_step =pcl.point_step * pcl.width;;
+    pcl.data.resize(pcl.width * pcl.point_step);
+
+    std::vector<double> x = Ping360Sonar::linspace(range_min, this->range_max_, number_of_bins);
+
+    sensor_msgs::PointCloud2Iterator<float> iterX(pcl, "x");
+    sensor_msgs::PointCloud2Iterator<float> iterY(pcl, "y");
+    sensor_msgs::PointCloud2Iterator<float> iterZ(pcl, "z");
+    sensor_msgs::PointCloud2Iterator<float> iterIntensity(pcl, "intensity");
+
+    for (uint32_t i = 0; i < pcl.width; ++i) {
+        *iterX = x[i] * cos_current_angle;
+        *iterY = x[i] * sin_current_angle;
+        *iterZ = 0;
+
+        *iterIntensity = data[i];
+
+        // // Increment the iterators
+        ++iterX;
+        ++iterY;
+        ++iterZ;
+        ++iterIntensity;
+    }
+    pcl_pub->publish(pcl);
+}
+
+std::vector<double> Ping360Sonar::linspace(double start, double end, int num) {
+  std::vector<double> result;
+  double step = (end - start) / (num - 1);
+  
+  for (int i = 0; i < num; ++i) {
+      double value = start + i * step;
+      result.push_back(value);
+  }
+  
+  return result;
 }
