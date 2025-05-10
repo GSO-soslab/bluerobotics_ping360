@@ -147,7 +147,7 @@ void Ping360Interface::configureTransducer(uint8_t gain, uint16_t frequency, uin
   }
 }
 
-bool Ping360Interface::updateAngle(bool slice, int min_angle)
+bool Ping360Interface::updateAngle(bool constrain_min, int constrained_min_angle_)
 {
 
   angle += angle_step;
@@ -165,20 +165,20 @@ bool Ping360Interface::updateAngle(bool slice, int min_angle)
     angle_step *= -1;
 
     //Reconfiguring angle_min to min_angle. (For sectors that don't need 0 angle)
-    if(slice)
+    if(constrain_min)
     {
     // std::cout<<min_angle<<std::endl;
-    angle_min = min_angle*1.11;
+    angle_min = constrained_min_angle_*1.11;
     }
     return true;
   }
   return false;
 }
 
-std::pair<bool, bool> Ping360Interface::read(bool slice, int min_angle)
+std::pair<bool, bool> Ping360Interface::read(bool constrain_min, int constrained_min_angle_)
 {
   // update angle before ping in order to stay sync
-  const auto end_turn = updateAngle(slice, min_angle);
+  const auto end_turn = updateAngle(constrain_min, constrained_min_angle_);
 
   auto &device{sonar->device_data_data};
   if(real_sonar)

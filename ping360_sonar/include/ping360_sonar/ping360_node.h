@@ -51,8 +51,8 @@ private:
   int angle_min_;
   int angle_max_;
   /// Sector mode
-  bool slice_;
-  int min_angle_;
+  bool constrain_min_;
+  int constrained_min_angle_;
   
   int angle_step_ ;
   int image_size_ ;

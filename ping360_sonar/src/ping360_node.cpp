@@ -13,69 +13,69 @@ Ping360Sonar::Ping360Sonar(rclcpp::NodeOptions options)
   : Node("ping360_node", options)
 { 
   // Declare Params
-  this->declare_parameter<std::string>("device");
-  this->declare_parameter<int>("baudrate");
-  this->declare_parameter<bool>("fallback_emulated");
-  this->declare_parameter<std::string>("connection_type");
-  this->declare_parameter<std::string>("udp_address");
-  this->declare_parameter<int>("udp_port");
+  this->declare_parameter<std::string>("Interface.device");
+  this->declare_parameter<int>("Interface.baudrate");
+  this->declare_parameter<bool>("Interface.fallback_emulated");
+  this->declare_parameter<std::string>("Interface.connection_type");
+  this->declare_parameter<std::string>("Interface.udp_address");
+  this->declare_parameter<int>("Interface.udp_port");
 
-  this->declare_parameter<std::string>("frame");
-  this->declare_parameter<int>("gain");
-  this->declare_parameter<int>("frequency");
-  this->declare_parameter<int>("range_max");
-  this->declare_parameter<int>("angle_sector");
+  this->declare_parameter<std::string>("Configuration.frame");
+  this->declare_parameter<int>("Configuration.gain");
+  this->declare_parameter<int>("Configuration.frequency");
+  this->declare_parameter<int>("Configuration.range_max");
+  this->declare_parameter<int>("Configuration.angle_sector");
 
-  this->declare_parameter<bool>("custom_enabled");
-  this->declare_parameter<int>("angle_min");
-  this->declare_parameter<int>("angle_max");
-  this->declare_parameter<bool>("slice");
-  this->declare_parameter<int>("min_angle");
+  this->declare_parameter<bool>("Configuration.custom_enabled");
+  this->declare_parameter<int>("Configuration.angle_min");
+  this->declare_parameter<int>("Configuration.angle_max");
+  this->declare_parameter<bool>("Configuration.constrain_min");
+  this->declare_parameter<int>("Configuration.constrained_min_angle");
 
-  this->declare_parameter<int>("angle_step");
-  this->declare_parameter<int>("image_size");
-  this->declare_parameter<int>("scan_threshold");
-  this->declare_parameter<int>("speed_of_sound");
-  this->declare_parameter<int>("image_rate");
-  this->declare_parameter<int>("sonar_timeout");
+  this->declare_parameter<int>("Configuration.angle_step");
+  this->declare_parameter<int>("Configuration.image_size");
+  this->declare_parameter<int>("Configuration.scan_threshold");
+  this->declare_parameter<int>("Configuration.speed_of_sound");
+  this->declare_parameter<int>("Configuration.image_rate");
+  this->declare_parameter<int>("Configuration.sonar_timeout");
 
   //Publishers
-  this->declare_parameter<bool>("publish_image");
-  this->declare_parameter<bool>("publish_scan");
-  this->declare_parameter<bool>("publish_echo");
-  this->declare_parameter<bool>("publish_pcl");
+  this->declare_parameter<bool>("Topics.publish_image");
+  this->declare_parameter<bool>("Topics.publish_scan");
+  this->declare_parameter<bool>("Topics.publish_echo");
+  this->declare_parameter<bool>("Topics.publish_pcl");
 
 
   //Get Params
-  device_ = this->get_parameter("device").as_string();
-  baudrate_ = this->get_parameter("baudrate").as_int();
-  fallback_emulated_ = this->get_parameter("fallback_emulated").as_bool();
-  connection_type_ = this->get_parameter("connection_type").as_string();
-  udp_address_ = this->get_parameter("udp_address").as_string();
-  udp_port_ = this->get_parameter("udp_port").as_int();
+  device_ = this->get_parameter("Interface.device").as_string();
+  baudrate_ = this->get_parameter("Interface.baudrate").as_int();
+  fallback_emulated_ = this->get_parameter("Interface.fallback_emulated").as_bool();
+  connection_type_ = this->get_parameter("Interface.connection_type").as_string();
+  udp_address_ = this->get_parameter("Interface.udp_address").as_string();
+  udp_port_ = this->get_parameter("Interface.udp_port").as_int();
 
-  frame_ = this->get_parameter("frame").as_string();
-  gain_ = this->get_parameter("gain").as_int();
-  frequency_ = this->get_parameter("frequency").as_int();
-  range_max_ = this->get_parameter("range_max").as_int();
-  angle_sector_ = this->get_parameter("angle_sector").as_int();
+  frame_ = this->get_parameter("Configuration.frame").as_string();
+  gain_ = this->get_parameter("Configuration.gain").as_int();
+  frequency_ = this->get_parameter("Configuration.frequency").as_int();
+  range_max_ = this->get_parameter("Configuration.range_max").as_int();
+  angle_sector_ = this->get_parameter("Configuration.angle_sector").as_int();
 
-  custom_enabled_ = this->get_parameter("custom_enabled").as_bool();
-  angle_min_ = this->get_parameter("angle_min").as_int();
-  angle_max_ = this->get_parameter("angle_max").as_int();
-  slice_ = this->get_parameter("slice").as_bool();
-  min_angle_ = this->get_parameter("min_angle").as_int();
+  custom_enabled_ = this->get_parameter("Configuration.custom_enabled").as_bool();
+  angle_min_ = this->get_parameter("Configuration.angle_min").as_int();
+  angle_max_ = this->get_parameter("Configuration.angle_max").as_int();
+  constrain_min_ = this->get_parameter("Configuration.constrain_min").as_bool();
+  constrained_min_angle_ = this->get_parameter("Configuration.constrained_min_angle").as_int();
 
-  angle_step_ = this->get_parameter("angle_step").as_int();
-  image_size_ = this->get_parameter("image_size").as_int();
-  scan_threshold_ = this->get_parameter("scan_threshold").as_int();
-  speed_of_sound_ = this->get_parameter("speed_of_sound").as_int();
-  image_rate_ = this->get_parameter("image_rate").as_int();
-  sonar_timeout_ = this->get_parameter("sonar_timeout").as_int();
-  publish_image_ = this->get_parameter("publish_image").as_bool();
-  publish_scan_ = this->get_parameter("publish_scan").as_bool();
-  publish_echo_ = this->get_parameter("publish_echo").as_bool();
-  publish_pcl_ = this->get_parameter("publish_pcl").as_bool();
+  angle_step_ = this->get_parameter("Configuration.angle_step").as_int();
+  image_size_ = this->get_parameter("Configuration.image_size").as_int();
+  scan_threshold_ = this->get_parameter("Configuration.scan_threshold").as_int();
+  speed_of_sound_ = this->get_parameter("Configuration.speed_of_sound").as_int();
+  image_rate_ = this->get_parameter("Configuration.image_rate").as_int();
+  sonar_timeout_ = this->get_parameter("Configuration.sonar_timeout").as_int();
+  publish_image_ = this->get_parameter("Topics.publish_image").as_bool();
+  publish_scan_ = this->get_parameter("Topics.publish_scan").as_bool();
+  publish_echo_ = this->get_parameter("Topics.publish_echo").as_bool();
+  publish_pcl_ = this->get_parameter("Topics.publish_pcl").as_bool();
 
   // Create Sonar Object
   sonar = std::make_shared<Ping360Interface>(device_, baudrate_, 
@@ -298,7 +298,7 @@ void Ping360Sonar::refreshImage()
 
 void Ping360Sonar::refresh()
 {
-  const auto &[valid, end_turn] = sonar->read(this->slice_, this->min_angle_); {}
+  const auto &[valid, end_turn] = sonar->read(this->constrain_min_, this->constrained_min_angle_); {}
   
   if(!valid)
   {
